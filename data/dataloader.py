@@ -73,12 +73,15 @@ class Tacotron3Inference(data.Dataset):
     Input data: mel x, embedding y
     Ouput data: mel y
     """
-    def __init__(self,transform=LogCompression(),
+    def __init__(self, active_encoder,
+                 transform=LogCompression(),
                  datapath=Path('/Users/alexanderhagelborn/PycharmProjects/speaker_decoder/data/sequence_256'),
-                 mode='validate'):
+                 mode='validate',
+                 ):
         self.transform = transform
         self.mel_path = datapath.joinpath('melspectrogram_frames')
         self.emb_path = datapath.joinpath('partial_embeddings')
+        self.active_encoder = active_encoder
 
         # Making sure all people exist
         emb_people = set(p.name for p in self.emb_path.iterdir() if p.is_dir())
@@ -92,6 +95,28 @@ class Tacotron3Inference(data.Dataset):
 
         self.people_combinations = [combo for combo in product(self.people, self.people) if combo[0] != combo[1]] # Not allowed to combo with themselves
 
+    def get_person(self,item):
+        person = self.people[item]
+        mel_path = self.mel_path.joinpath(person)
+        emb_path = self.emb_path.joinpath(person)
+
+        embeddings = [np.load(x.as_posix()) for x in emb_path.iterdir() if x.is_file() and x.name != '.DS_Store']
+        mels = [np.load(x.as_posix()) for x in mel_path.iterdir() if x.is_file() and x.name != '.DS_Store']
+
+        embeddings = torch.from_numpy(embeddings)
+        embeddings = torch.stack(embeddings)
+
+        mels = torch.from_numpy(mels)
+        mels = torch.stack(mels)
+        if self.active_encoder:
+            input_mels = mels
+        else:
+            input_mels = None
+
+        return (input_mels, embeddings), mels
+
+    def get_person_name(self,item):
+        return self.people[item].name
 
     def __len__(self):
         return len(self.people_combinations)
@@ -108,17 +133,19 @@ class Tacotron3Inference(data.Dataset):
         yemb = random.choice([x for x in input_emb_path.iterdir() if x.is_file() and x.name != '.DS_Store'])
         ymel = random.choice([x for x in output_mel_path.iterdir() if x.is_file() and x.name != '.DS_Store'])
 
-        input_mel = np.load(xmel,allow_pickle=True)
         input_emb = np.load(yemb,allow_pickle=True)
         target_mel = np.load(ymel,allow_pickle=True)
 
-        input_mel = torch.from_numpy(input_mel)
         input_emb = torch.from_numpy(input_emb)
         target_mel = torch.from_numpy(target_mel)
 
-        if self.transform:
+        if self.active_encoder:
+            input_mel = np.load(xmel, allow_pickle=True)
+            input_mel = torch.from_numpy(input_mel)
             input_mel = self.transform(input_mel)
-            target_mel = self.transform(target_mel)
+        else:
+            input_mel = None
 
-        return input_mel, input_emb
-        #return (input_mel, input_emb), target_mel # FIX - Maybe inference should pair the right embedding with the right mel? thought
+        target_mel = self.transform(target_mel)
+
+        return (input_mel, input_emb), target_mel  # FIX - Maybe inference should pair the right embedding with the right mel? thought

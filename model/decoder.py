@@ -9,11 +9,10 @@ import model.hparams as hparams
 
 
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self,active_encoder):
         super(Decoder, self).__init__()
         self.n_mel_channels = hparams.n_mel_channels
         self.n_frames_per_step = hparams.n_frames_per_step
-        self.encoder_embedding_dim = hparams.encoder_embedding_dim
         self.attention_rnn_dim = hparams.attention_rnn_dim
         self.decoder_rnn_dim = hparams.decoder_rnn_dim
         self.prenet_dim = hparams.prenet_dim
@@ -23,25 +22,30 @@ class Decoder(nn.Module):
         self.p_decoder_dropout = hparams.p_decoder_dropout
         self.seq_len = hparams.seq_len
 
+        if active_encoder:
+            self.encoder_embedding_dim = hparams.encoder_embedding_dim
+        else:
+            self.encoder_embedding_dim = hparams.embedding_dim
+
         self.prenet = Prenet(
             hparams.n_mel_channels * hparams.n_frames_per_step,
             [hparams.prenet_dim, hparams.prenet_dim])
 
         self.attention_rnn = nn.LSTMCell(
-            hparams.prenet_dim + hparams.encoder_embedding_dim,
+            hparams.prenet_dim + self.encoder_embedding_dim,
             hparams.attention_rnn_dim, bias=True)
 
         self.attention_layer = Attention(
-            hparams.attention_rnn_dim, hparams.encoder_embedding_dim,
+            hparams.attention_rnn_dim, self.encoder_embedding_dim,
             hparams.attention_dim, hparams.attention_location_n_filters,
             hparams.attention_location_kernel_size)
 
         self.decoder_rnn = nn.LSTMCell(
-            hparams.attention_rnn_dim + hparams.encoder_embedding_dim,
+            hparams.attention_rnn_dim + self.encoder_embedding_dim,
             hparams.decoder_rnn_dim, bias=True)
 
         self.linear_projection = LinearNorm(
-            hparams.decoder_rnn_dim + hparams.encoder_embedding_dim,
+            hparams.decoder_rnn_dim + self.encoder_embedding_dim,
             hparams.n_mel_channels * hparams.n_frames_per_step)
 
     def get_go_frame(self, memory):

@@ -7,7 +7,7 @@
 # Experiment Parameters        #
 ################################
 epochs=50
-iters_per_checkpoint=250
+iters_per_checkpoint=400
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False
@@ -76,4 +76,10 @@ weight_decay=1e-6
 grad_clip_thresh=1.0
 batch_size=64
 mask_padding=True  # set model's padded outputs to padded values
+
+
+################################
+# Validation parameters        #
+################################
+val_batch_size = 6
 

@@ -1,5 +1,5 @@
 from model.decoder import Decoder
-from model.encoder import Encoder
+from model.encoder import Encoder, SimpleEncoder
 import model.hparams as hparams
 from model.layers import ConvNorm, LinearNorm
 import torch.nn as nn
@@ -7,11 +7,13 @@ import torch
 import torch.nn.functional as F
 
 class Tacotron3(nn.Module):
-    def __init__(self):
+    def __init__(self,activate_encoder):
         super(Tacotron3, self).__init__()
-
-        self.encoder = Encoder()
-        self.decoder = Decoder()
+        if activate_encoder:
+            self.encoder = Encoder()
+        else:
+            self.encoder = SimpleEncoder()
+        self.decoder = Decoder(activate_encoder)
         self.postnet = Postnet()
 
 

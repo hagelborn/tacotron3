@@ -9,6 +9,7 @@ from librosa.display import specshow
 import matplotlib
 matplotlib.use('MacOSX')
 from matplotlib import pyplot as plt
+import model.hparams as hparams
 
 def plot_mels(specs,fs=16000):
     specshow(specs, x_axis='time',
@@ -22,23 +23,36 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-w', '--weights_path', type=str, default=None,
                         required=True, help='weights path')
+    parser.add_argument('-m', '--activate_encoder', type=bool, default=True,
+                        required=False, help='train model with encoder or not')
     args = parser.parse_args()
 
     model = load_model()
     warm_start_model(args.weights_path,model)
-    valset = Tacotron3Inference()
-    val_loader = DataLoader(valset,batch_size=4)
+    valset = Tacotron3Inference(mode='train')
+    val_loader = DataLoader(valset,batch_size=hparams.val_batch_size)
 
     model.eval()
     with torch.no_grad():
-        for input in val_loader:
+        for batch in val_loader:
+            input, target = batch
             output = model.inference(input)
-            for mel_pred in output:
+            for i in range(hparams.val_batch_size):
+                mel_pred = output[i]
+                mel_target = target[i].permute(1,0)
+
+
                 maxval = torch.max(mel_pred)
                 print(maxval)
-                #data = plot_spectrogram_to_numpy(mel_pred)
                 mel_pred = mel_pred.numpy()
+                mel_target = mel_target.numpy()
+
                 fig = plt.figure()
+                plt.subplot(121)
                 plot_mels(mel_pred)
+                plt.title('Predicted')
+                plt.subplot(122)
+                plot_mels(mel_target)
+                plt.title('Target')
                 plt.show()
             break

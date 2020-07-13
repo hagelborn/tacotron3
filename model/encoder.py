@@ -2,6 +2,16 @@ import torch
 import torch.nn as nn
 import model.hparams as hparams
 
+class SimpleEncoder(nn.Module):
+    def __init__(self):
+        super(SimpleEncoder, self).__init__()
+        self.seq_len = hparams.seq_len
+
+    def forward(self,mel_input,embedding): # FIX mel_input unnecessary, change data_set for activate_encoder?
+        embedding = embedding.unsqueeze(1)
+        encoder_output = embedding.repeat(1, self.seq_len, 1)
+        return encoder_output
+
 
 class Encoder(nn.Module):
     def __init__(self):
