@@ -7,7 +7,7 @@
 # Experiment Parameters        #
 ################################
 epochs=50
-iters_per_checkpoint=100
+iters_per_checkpoint=50
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False
@@ -39,10 +39,10 @@ mel_fmax=8000.0
 ################################
 
 # Encoder parameters
-encoder_num_layers = 3
-encoder_hidden_dim = 128
+encoder_num_layers = 1
+encoder_hidden_dim = 32
 embedding_dim = 256
-bidirect = True
+bidirect = False
 encoder_embedding_dim = embedding_dim + encoder_hidden_dim*(1+bidirect)
 
 
@@ -75,7 +75,7 @@ use_saved_learning_rate=False,
 learning_rate=1e-3
 weight_decay=1e-6
 grad_clip_thresh=1.0
-batch_size=64
+batch_size=2
 mask_padding=True  # set model's padded outputs to padded values
 
 

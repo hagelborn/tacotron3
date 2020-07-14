@@ -18,10 +18,11 @@ class Tacotron3(nn.Module):
 
 
     def forward(self,inputs):
-        mel_source, embedding, mel_target = inputs
+        mel_source, mel_lengths, embedding, mel_target = inputs
+        mel_lengths = mel_lengths.data
 
         encoder_outputs = self.encoder(mel_source, embedding)
-        mel_outputs, alignments = self.decoder(encoder_outputs,mel_target)
+        mel_outputs, alignments = self.decoder(encoder_outputs,mel_target,mel_lengths)
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 

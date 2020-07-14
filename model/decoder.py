@@ -21,7 +21,7 @@ class Decoder(nn.Module):
         self.gate_threshold = hparams.gate_threshold
         self.p_attention_dropout = hparams.p_attention_dropout
         self.p_decoder_dropout = hparams.p_decoder_dropout
-        self.seq_len = hparams.seq_len
+        self.max_len = hparams.max_len
 
         if active_encoder:
             self.encoder_embedding_dim = hparams.encoder_embedding_dim
@@ -186,7 +186,7 @@ class Decoder(nn.Module):
 
         return decoder_output, self.attention_weights
 
-    def forward(self, memory, decoder_inputs):
+    def forward(self, memory, decoder_inputs, mel_lengths):
         """ Decoder forward pass for training
         PARAMS
         ------
@@ -202,15 +202,13 @@ class Decoder(nn.Module):
         """
 
         decoder_input = self.get_go_frame(memory).unsqueeze(1)
-        #decoder_inputs = self.parse_decoder_inputs(decoder_inputs)
         decoder_inputs = torch.cat((decoder_input, decoder_inputs), dim=1)
         decoder_inputs = self.prenet(decoder_inputs)
         decoder_inputs = decoder_inputs.permute(1,0,2)
 
         # ################### Hmmmm, leave as this or do something? ######################
-        lengths = torch.ones(memory.size(0),1)*self.seq_len
         self.initialize_decoder_states(
-            memory, mask=~get_mask_from_lengths(lengths))
+            memory, mask=~get_mask_from_lengths(mel_lengths))
 
         mel_outputs, alignments = [], []
         while len(mel_outputs) < decoder_inputs.size(0) - 1:
@@ -242,7 +240,7 @@ class Decoder(nn.Module):
         self.initialize_decoder_states(memory, mask=None)
 
         mel_outputs, alignments = [], []
-        while len(mel_outputs) < hparams.seq_len:
+        while len(mel_outputs) < self.max_len:
             decoder_input = self.prenet(decoder_input)
             mel_output, alignment = self.decode(decoder_input)
 
@@ -328,7 +326,12 @@ class Attention(nn.Module):
             attention_hidden_state, processed_memory, attention_weights_cat)
 
         if mask is not None:
-            alignment.data.masked_fill_(mask, self.score_mask_value)
+            try:
+                alignment.data.masked_fill_(mask, self.score_mask_value)
+            except:
+                print('alignment: ', alignment.shape)
+                print('mask: ', mask.shape)
+                print('memory: ', memory.shape)
 
         attention_weights = F.softmax(alignment, dim=1)
         attention_context = torch.bmm(attention_weights.unsqueeze(1), memory)
@@ -351,8 +354,8 @@ class Prenet(nn.Module):
         return x
 
 def get_mask_from_lengths(lengths):
-    max_len = torch.max(lengths).item()
-    ids = torch.arange(0, max_len, out=torch.LongTensor(int(max_len)))
+    #max_len = torch.max(lengths).item() # Ugly sollution, FIX
+    ids = torch.arange(0, hparams.max_len, out=torch.LongTensor(int(hparams.max_len)))
     mask = (ids < lengths.unsqueeze(1)).bool()
-    mask.squeeze_()
+
     return mask
