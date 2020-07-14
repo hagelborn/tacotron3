@@ -5,6 +5,7 @@ import torch
 from data.transform import LogCompression
 from itertools import product
 import random
+import model.hparams as hparams
 
 
 class Tacotron3Train(data.Dataset):
@@ -19,50 +20,48 @@ class Tacotron3Train(data.Dataset):
                  mode='train'):
         self.transform = transform
         # Change this at later stage
-        self.mel_path = datapath.joinpath('melspectrogram_frames')
-        self.emb_path = datapath.joinpath('partial_embeddings')
+        self.mel_path = datapath.joinpath('full_melspectrograms')
+        self.emb_path = datapath.joinpath('embeddings')
         self.transform = transform
+        self.max_len = hparams.max_len
 
         # Making sure all people exist
-        emb_people = set(p.name for p in self.emb_path.iterdir() if p.is_dir())
-        mel_people = set(p.name for p in self.mel_path.iterdir() if p.is_dir())
-        self.people = sorted(emb_people.intersection(mel_people))
+        emb_people = set(p.name for p in self.emb_path.iterdir() if p.is_file() and p.name != '.DS_Store')
+        mel_people = set(p.name for p in self.mel_path.iterdir() if p.is_file() and p.name != '.DS_Store')
+        self.people = [person for person in emb_people if person in mel_people]
 
         if mode == 'train':
             self.people = self.people[:round(0.8*len(self.people))]
         else:
             self.people = self.people[round(0.8*len(self.people)):]
-        self.people_combinations = [combo for combo in product(self.people, self.people) if combo[0] != combo[1]] # Not allowed to combo with themselves
 
 
     def __len__(self):
-        return len(self.people_combinations)
+        return len(self.people)
 
     def __getitem__(self, item):
-        xpers, ypers = self.people_combinations[item]
+        person = self.people[item]
 
         # Random choice from persons directory
-        input_mel_path = self.mel_path.joinpath(xpers)
-        input_emb_path = self.emb_path.joinpath(ypers)
-        output_mel_path = self.mel_path.joinpath(ypers)
+        mel_path = self.mel_path.joinpath(person)
+        emb_path = self.emb_path.joinpath(person)
 
-        xmel = random.choice([x for x in input_mel_path.iterdir() if x.is_file() and x.name != '.DS_Store'])
-        yemb = random.choice([x for x in input_emb_path.iterdir() if x.is_file() and x.name != '.DS_Store'])
-        ymel = random.choice([x for x in output_mel_path.iterdir() if x.is_file() and x.name != '.DS_Store'])
+        embedding = np.load(emb_path,allow_pickle=True)
+        embedding = torch.from_numpy(embedding)
 
-        input_mel = np.load(xmel,allow_pickle=True)
-        input_emb = np.load(yemb,allow_pickle=True)
-        target_mel = np.load(ymel,allow_pickle=True)
+        mel = np.load(mel_path,allow_pickle=True)
+        mel = torch.from_numpy(mel)
+        mel = self.transform(mel)
 
-        input_mel = torch.from_numpy(input_mel)
-        input_emb = torch.from_numpy(input_emb)
-        target_mel = torch.from_numpy(target_mel)
+        padded_mel = mel.new_zeros(self.max_len,mel.shape[1])
+        if mel.shape[0] < self.max_len:
+            mel_length = mel.shape[0]
+            padded_mel[:mel_length,:] = mel
+        else:
+            mel_length = self.max_len
+            padded_mel = mel[:mel_length,:]
 
-        if self.transform:
-            input_mel = self.transform(input_mel)
-            target_mel = self.transform(target_mel)
-
-        return (input_mel, input_emb, target_mel), target_mel.transpose(1,0) #FIX - skipped clone() since this should return a new tensor anyway?
+        return (padded_mel, mel_length, embedding, padded_mel), padded_mel.transpose(1,0) #FIX - skipped clone() since this should return a new tensor anyway?
 
 
 
@@ -102,6 +101,9 @@ class Tacotron3Inference(data.Dataset):
 
         embeddings = [np.load(x.as_posix()) for x in emb_path.iterdir() if x.is_file() and x.name != '.DS_Store']
         mels = [np.load(x.as_posix()) for x in mel_path.iterdir() if x.is_file() and x.name != '.DS_Store']
+
+        embeddings = [embeddings[0] for x in range(10)]
+        mels = [mels[0] for x in range(10)]
 
         embeddings = [torch.from_numpy(embedding) for embedding in embeddings]
         embeddings = torch.stack(embeddings)

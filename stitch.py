@@ -77,7 +77,7 @@ if __name__ == '__main__':
     warm_start_model(args.checkpoint_path,model)
     model.eval()
 
-    ds = Tacotron3Inference(active_encoder=args.activate_encoder,mode='train')
+    ds = Tacotron3Inference(active_encoder=args.activate_encoder,mode='validate')
     np.random.seed(1234)
     nbrs = [np.random.randint(0, ds.nbr_people() - 1) for x in range(args.n_samples)]
 

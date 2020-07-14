@@ -9,7 +9,8 @@ import model.hparams as hparams
 
 
 class Decoder(nn.Module):
-    def __init__(self,active_encoder):
+    def \
+            __init__(self,active_encoder):
         super(Decoder, self).__init__()
         self.n_mel_channels = hparams.n_mel_channels
         self.n_frames_per_step = hparams.n_frames_per_step

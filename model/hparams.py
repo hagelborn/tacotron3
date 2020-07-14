@@ -20,6 +20,7 @@ ignore_layers=['embedding.weight']
 ################################
 
 seq_len = 160
+max_len = 2101 #
 
 ################################
 # Audio Parameters             #
