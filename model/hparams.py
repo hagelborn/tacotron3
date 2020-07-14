@@ -7,7 +7,7 @@
 # Experiment Parameters        #
 ################################
 epochs=50
-iters_per_checkpoint=400
+iters_per_checkpoint=100
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False

@@ -2,7 +2,7 @@
 import argparse
 import torch
 from train import load_model, warm_start_model
-from data.dataloader import Tacotron3Inference
+from data.dataloader import Tacotron3Inference, Tacotron3Train
 from plotting_utils import plot_spectrogram_to_numpy
 from torch.utils.data import DataLoader
 from librosa.display import specshow
@@ -23,13 +23,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-w', '--weights_path', type=str, default=None,
                         required=True, help='weights path')
-    parser.add_argument('-m', '--activate_encoder', type=bool, default=True,
-                        required=False, help='train model with encoder or not')
+    parser.add_argument('--encoder', dest='activate_encoder', action='store_true')
+
+    parser.add_argument('--no_encoder', dest='activate_encoder', action='store_false')
+
+    parser.set_defaults(activate_encoder=True)
     args = parser.parse_args()
 
-    model = load_model()
+    model = load_model(args.activate_encoder)
     warm_start_model(args.weights_path,model)
-    valset = Tacotron3Inference(mode='train')
+    valset = Tacotron3Inference(active_encoder=args.activate_encoder, mode='validate')
+    #valset = Tacotron3Train(mode='validate')
     val_loader = DataLoader(valset,batch_size=hparams.val_batch_size)
 
     model.eval()
@@ -41,9 +45,9 @@ if __name__ == '__main__':
                 mel_pred = output[i]
                 mel_target = target[i].permute(1,0)
 
-
                 maxval = torch.max(mel_pred)
-                print(maxval)
+                minval = torch.min(mel_pred)
+                print(minval.item())
                 mel_pred = mel_pred.numpy()
                 mel_target = mel_target.numpy()
 

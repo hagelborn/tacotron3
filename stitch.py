@@ -27,13 +27,17 @@ def overlap_add(mel_frames,nmels):
     ind = torch.arange(160) - 80
 
     for i in range(len(mel_frames)):
+        frame = mel_frames[i]
+        if frame.shape[1] != nmels:
+            frame = frame.permute(1,0)
+
         ind += 80
         if i == 0:
-            recon[ind,:] += mel_frames[i] * half_hamm
+            recon[ind,:] += frame * half_hamm
         elif i == len(mel_frames) - 1:
-            recon[ind,:] += mel_frames[i] * torch.flip(half_hamm,dims=(0,))
+            recon[ind,:] += frame * torch.flip(half_hamm,dims=(0,))
         else:
-            recon[ind, :] += mel_frames[i] * hamm
+            recon[ind, :] += frame * hamm
 
     return recon
 
@@ -41,7 +45,7 @@ def save_wav(mel, name, interp=False):
     if interp:
         wav_pred_name = Path.cwd().as_posix() + '/output/wavs/' + name + 'interp' + '.wav'
     else:
-        wav_pred_name = Path.cwd().as_posix() + '/output/wavs' + name + 'stitch' + '.wav'
+        wav_pred_name = Path.cwd().as_posix() + '/output/wavs/' + name + 'stitch' + '.wav'
     sr = hparams.sampling_rate
     wav_pred = librosa.feature.inverse.mel_to_audio(np.transpose(mel, axes=(1, 0)), sr=sr,
                                                     win_length=int(25 * sr / 1000),
@@ -56,10 +60,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c','--checkpoint_path',type=str,required=True)
     parser.add_argument('-p','--plot', dest='plot', action='store_true')
-    parser.add_argument('-s','save_audio',dest='save', action='store_true')
+    parser.add_argument('-s','--save_audio',dest='save', action='store_true')
     parser.add_argument('--encoder', dest='activate_encoder', action='store_true')
     parser.add_argument('--no_encoder', dest='activate_encoder', action='store_false')
-    parser.add_argument('-n', '--n_samples', required=False, default=3)
+    parser.add_argument('-n', '--n_samples', required=False, default=3, type=int)
 
     parser.set_defaults(activate_encoder=True)
     parser.set_defaults(plot=False)
@@ -73,8 +77,9 @@ if __name__ == '__main__':
     warm_start_model(args.checkpoint_path,model)
     model.eval()
 
-    ds = Tacotron3Inference(active_encoder=parser.activate_encoder)
-    nbrs = [np.random.randint(0,len(ds)) for x in range(parser.n_samples)]
+    ds = Tacotron3Inference(active_encoder=args.activate_encoder,mode='train')
+    np.random.seed(1234)
+    nbrs = [np.random.randint(0, ds.nbr_people() - 1) for x in range(args.n_samples)]
 
     inv = InverseLogCompression()
 
@@ -82,24 +87,26 @@ if __name__ == '__main__':
         for nbr in nbrs:
             inputs, target = ds.get_person(nbr)
             person = ds.get_person_name(nbr)
+            print(person)
+
             out = model.inference(inputs)
 
             recon = overlap_add(out, hparams.n_mel_channels)
             target = overlap_add(target, hparams.n_mel_channels)
-            logmel = recon.detach().numpy()
-            logtarget = target.detach().numpy()
-
-            recon = inv(recon)
-            target = inv(target)
-
-            mel = recon.detach().numpy()
-            targetmel = target.detach().numpy()
 
             if args.save:
+                recon = inv(recon)
+                target = inv(target)
+                m = torch.max(recon)
+                m2 = torch.min(recon)
+
+                mel = recon.detach().numpy()
+                targetmel = target.detach().numpy()
                 save_wav(mel, person + '_predict')
                 save_wav(targetmel, person + '_true')
 
             if args.plot:
+                logmel = recon.transpose(1, 0).detach().numpy()
                 # plt.figure()
                 # plot_mels(logmel)
                 # plt.title('Reconstructed')

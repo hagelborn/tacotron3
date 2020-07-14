@@ -103,20 +103,24 @@ class Tacotron3Inference(data.Dataset):
         embeddings = [np.load(x.as_posix()) for x in emb_path.iterdir() if x.is_file() and x.name != '.DS_Store']
         mels = [np.load(x.as_posix()) for x in mel_path.iterdir() if x.is_file() and x.name != '.DS_Store']
 
-        embeddings = torch.from_numpy(embeddings)
+        embeddings = [torch.from_numpy(embedding) for embedding in embeddings]
         embeddings = torch.stack(embeddings)
 
-        mels = torch.from_numpy(mels)
+        mels = [torch.from_numpy(mel) for mel in mels]
         mels = torch.stack(mels)
+        mels = self.transform(mels)
         if self.active_encoder:
             input_mels = mels
         else:
-            input_mels = None
+            input_mels = 0
 
         return (input_mels, embeddings), mels
 
     def get_person_name(self,item):
-        return self.people[item].name
+        return self.people[item]
+
+    def nbr_people(self):
+        return len(self.people)
 
     def __len__(self):
         return len(self.people_combinations)
@@ -144,7 +148,7 @@ class Tacotron3Inference(data.Dataset):
             input_mel = torch.from_numpy(input_mel)
             input_mel = self.transform(input_mel)
         else:
-            input_mel = None
+            input_mel = 0
 
         target_mel = self.transform(target_mel)
 

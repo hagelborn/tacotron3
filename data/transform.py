@@ -14,10 +14,13 @@ class LogCompression(object):
 
 class InverseLogCompression(object):
 
-    def __init__(self,gamma=1000):
+    def __init__(self,gamma=1000,min_clip = 1e-05):
         self.gamma = gamma
+        self.min_clip = min_clip
 
     def __call__(self, sample):
+        sample.clamp_(0)
         torch.exp_(sample)
         sample -= 1
-        return sample.div_(self.gamma)
+        sample.div_(self.gamma)
+        return sample.clamp_(min=self.min_clip)
