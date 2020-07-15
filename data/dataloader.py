@@ -35,9 +35,9 @@ class Tacotron3Train(data.Dataset):
         self.people = [person for person in emb_people if person in mel_people]
 
         if mode == 'train':
-            self.people = self.people[:round(0.8*len(self.people))]
+            self.people = self.people[round(0.2*len(self.people)):]
         else:
-            self.people = self.people[round(0.8*len(self.people)):]
+            self.people = self.people[:round(0.2*len(self.people))]
 
 
     def __len__(self):

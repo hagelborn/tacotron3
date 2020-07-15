@@ -6,8 +6,8 @@
 ################################
 # Experiment Parameters        #
 ################################
-epochs=50
-iters_per_checkpoint=100
+epochs=100
+iters_per_checkpoint=200
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False
@@ -20,7 +20,7 @@ ignore_layers=['embedding.weight']
 ################################
 
 seq_len = 160
-max_len = 1000 #
+max_len = 850 #
 
 ################################
 # Audio Parameters             #
@@ -72,7 +72,7 @@ postnet_n_convolutions=5
 # Optimization Hyperparameters #
 ################################
 use_saved_learning_rate=False,
-learning_rate=1e-3
+learning_rate=5e-4
 weight_decay=1e-6
 grad_clip_thresh=1.0
 batch_size=8
