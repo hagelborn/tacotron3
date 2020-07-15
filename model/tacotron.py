@@ -1,7 +1,7 @@
 from model.decoder import Decoder
 from model.encoder import Encoder, SimpleEncoder
 import model.hparams as hparams
-from model.layers import ConvNorm, LinearNorm
+from model.layers import ConvNorm
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
@@ -23,16 +23,41 @@ class Tacotron3(nn.Module):
 
         encoder_outputs = self.encoder(mel_source, embedding)
         mel_outputs, alignments = self.decoder(encoder_outputs,mel_target,mel_lengths)
+
+        end_padding_ind = get_reverse_mask(mel_lengths)
         mel_outputs_postnet = self.postnet(mel_outputs)
+
+        # FIX This sollution is ugleh - is there a better way?
+        mel_outputs = mel_outputs.permute(0, 2, 1)
+        mel_outputs[end_padding_ind, :] = 0
+        mel_outputs = mel_outputs.permute(0, 2, 1)
+
+        mel_outputs_postnet = mel_outputs_postnet.permute(0, 2, 1)
+        mel_outputs_postnet[end_padding_ind, :] = 0
+        mel_outputs_postnet = mel_outputs_postnet.permute(0, 2, 1)
+
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         return mel_outputs, mel_outputs_postnet, alignments
 
-    def inference(self,input):
-        mel_source, embedding = input
+    def inference(self,inputs):
+        mel_source, mel_lengths, embedding, _ = inputs
+
         encoder_outputs = self.encoder(mel_source, embedding)
         mel_outputs, _ = self.decoder.inference(encoder_outputs)
+
+        end_padding_ind = get_reverse_mask(mel_lengths)
         mel_outputs_postnet = self.postnet(mel_outputs)
+
+        # FIX This sollution is ugleh - is there a better way?
+        mel_outputs = mel_outputs.permute(0,2,1)
+        mel_outputs[end_padding_ind, :] = 0
+        mel_outputs = mel_outputs.permute(0,2,1)
+
+        mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
+        mel_outputs_postnet[end_padding_ind, :] = 0
+        mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
+
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         return mel_outputs_postnet
@@ -83,3 +108,9 @@ class Postnet(nn.Module):
         x = F.dropout(self.convolutions[-1](x), 0.5, self.training)
 
         return x
+
+def get_reverse_mask(lengths):
+    ids = torch.arange(0, hparams.max_len, out=torch.LongTensor(int(hparams.max_len)))
+    mask = (ids > lengths.unsqueeze(1)).bool()
+
+    return mask

@@ -192,6 +192,10 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                                     checkpoint_path)
 
             iteration += 1
+    checkpoint_path = os.path.join(
+        output_directory, "checkpoint_{}".format(iteration) + '.pt')
+    save_checkpoint(model, optimizer, learning_rate, iteration,
+                    checkpoint_path)
 
 
 if __name__ == '__main__':
