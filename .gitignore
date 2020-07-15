@@ -4,7 +4,8 @@
 /tacotron2
 /.idea
 /figs
-
+/data/80mels
+/data/embeddings
 
 
 # Default python ignores:
