@@ -20,10 +20,10 @@ class Tacotron3Train(data.Dataset):
                  mode='train'):
         self.transform = transform
         # Change this at later stage
-	if hparams.n_mel_channels == 80:
-        	self.mel_path = datapath.joinpath('80mels')
-	elif hparams.n_mel_channels == 256:
-		self.mel_path = datapath.joinpath('256mels')
+        if hparams.n_mel_channels == 80:
+                self.mel_path = datapath.joinpath('80mels')
+        elif hparams.n_mel_channels == 256:
+            self.mel_path = datapath.joinpath('256mels')
 
         self.emb_path = datapath.joinpath('embeddings')
         self.transform = transform
