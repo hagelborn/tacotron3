@@ -16,12 +16,12 @@ class Tacotron3Train(data.Dataset):
     Ouput data: mel y
     """
     def __init__(self,transform=LogCompression(),
-                 datapath=Path('/home/alexander_hagelborn/tacotron3/data'),
+                 datapath=Path('/Users/alexanderhagelborn/PycharmProjects/speaker_decoder/data'),
                  mode='train'):
         self.transform = transform
         # Change this at later stage
         if hparams.n_mel_channels == 80:
-                self.mel_path = datapath.joinpath('80mels')
+                self.mel_path = datapath.joinpath('80mels/full_melspectrograms')
         elif hparams.n_mel_channels == 256:
             self.mel_path = datapath.joinpath('256mels')
 
@@ -29,7 +29,7 @@ class Tacotron3Train(data.Dataset):
         self.max_len = hparams.max_len
 
         # Making sure all people exist
-        self.people = set(p.name for p in self.mel_path.iterdir() if p.is_file() and p.name != '.DS_Store')
+        self.people = [p.name for p in self.mel_path.iterdir() if p.is_file() and p.name != '.DS_Store']
 
         if mode == 'train':
             self.people = self.people[round(0.2*len(self.people)):]

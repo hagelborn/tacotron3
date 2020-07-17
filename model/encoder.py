@@ -56,12 +56,13 @@ class Encoder(nn.Module):
 
     def encode_speaker(self,x):
         _, (hidden, _) = self.speaker_encoder(x)
-        embedding = self.get_embed(hidden[-1])
+        y = torch.cat((hidden[-1],hidden[-2]),dim=-1)
+        embedding = self.get_embed(y)
         return embedding
 
     def forward(self,mel_input):
         embedding = self.encode_speaker(mel_input)
-        time_encoding = self.time_encoder(mel_input)
+        time_encoding, _ = self.time_encoder(mel_input)
         embedding = embedding.unsqueeze(1)
         embedding = embedding.repeat(1,self.max_len,1)
 

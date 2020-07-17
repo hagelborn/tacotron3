@@ -48,7 +48,7 @@ time_encoder_num_layers = 1
 time_encoder_hidden_dim = 16
 
 
-encoder_embedding_dim = time_encoder_hidden_dim + latent_dim*(1+bidirect)
+encoder_embedding_dim = time_encoder_hidden_dim + latent_dim
 
 
 # Decoder parameters
@@ -80,7 +80,7 @@ use_saved_learning_rate=False,
 learning_rate=5e-4
 weight_decay=1e-6
 grad_clip_thresh=1.0
-batch_size=8
+batch_size=2
 mask_padding=True  # set model's padded outputs to padded values
 
 
