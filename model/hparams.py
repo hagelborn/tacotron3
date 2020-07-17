@@ -7,7 +7,7 @@
 # Experiment Parameters        #
 ################################
 epochs=100
-iters_per_checkpoint=200
+iters_per_checkpoint=100
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False
@@ -19,7 +19,6 @@ ignore_layers=['embedding.weight']
 # Data Parameters             #
 ################################
 
-seq_len = 160
 max_len = 850 #
 
 ################################
@@ -39,11 +38,17 @@ mel_fmax=8000.0
 ################################
 
 # Encoder parameters
-encoder_num_layers = 1
-encoder_hidden_dim = 32
-embedding_dim = 256
-bidirect = False
-encoder_embedding_dim = embedding_dim + encoder_hidden_dim*(1+bidirect)
+speaker_encoder_num_layers = 3
+speaker_encoder_hidden_dim = 128
+bidirect = True
+
+latent_dim = 256
+
+time_encoder_num_layers = 1
+time_encoder_hidden_dim = 16
+
+
+encoder_embedding_dim = time_encoder_hidden_dim + latent_dim*(1+bidirect)
 
 
 # Decoder parameters
