@@ -23,17 +23,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-w', '--weights_path', type=str, default=None,
                         required=True, help='weights path')
-    parser.add_argument('--encoder', dest='activate_encoder', action='store_true')
 
-    parser.add_argument('--no_encoder', dest='activate_encoder', action='store_false')
-
-    parser.set_defaults(activate_encoder=True)
     args = parser.parse_args()
 
-    model = load_model(args.activate_encoder)
+    model = load_model()
     warm_start_model(args.weights_path,model)
-    valset = Tacotron3Inference(active_encoder=args.activate_encoder, mode='validate')
-    #valset = Tacotron3Train(mode='validate')
+    valset = Tacotron3Train(mode='validate')
     val_loader = DataLoader(valset,batch_size=hparams.val_batch_size)
 
     model.eval()

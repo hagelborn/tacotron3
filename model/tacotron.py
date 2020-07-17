@@ -7,13 +7,10 @@ import torch
 import torch.nn.functional as F
 
 class Tacotron3(nn.Module):
-    def __init__(self,activate_encoder):
+    def __init__(self):
         super(Tacotron3, self).__init__()
-        if activate_encoder:
-            self.encoder = Encoder()
-        else:
-            self.encoder = SimpleEncoder()
-        self.decoder = Decoder(activate_encoder)
+        self.encoder = Encoder()
+        self.decoder = Decoder()
         self.postnet = Postnet()
 
 

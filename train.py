@@ -33,8 +33,8 @@ def prepare_directories_and_logger(output_directory, log_directory, rank):
     return logger
 
 
-def load_model(activate_encoder):
-    model = Tacotron3(activate_encoder)
+def load_model():
+    model = Tacotron3()
     if hparams.fp16_run:
         model.decoder.attention_layer.score_mask_value = finfo('float16').min
 
@@ -96,7 +96,7 @@ def validate(model, criterion, valset, iteration, batch_size, logger, rank):
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
-          rank,activate_encoder):
+          rank):
     """Training and validation logging results to tensorboard and stdout
 
     Params
@@ -111,7 +111,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
     torch.manual_seed(hparams.seed)
 
-    model = load_model(activate_encoder)
+    model = load_model()
     learning_rate = hparams.learning_rate
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,
                                  weight_decay=hparams.weight_decay)
@@ -214,17 +214,10 @@ if __name__ == '__main__':
     parser.add_argument('--rank', type=int, default=0,
                         required=False, help='rank of current gpu')
 
-    parser.add_argument('--encoder', dest='activate_encoder', action='store_true')
-
-    parser.add_argument('--no_encoder', dest='activate_encoder', action='store_false')
-
-    parser.set_defaults(activate_encoder=True)
-
     args = parser.parse_args()
 
     print("FP16 Run:", hparams.fp16_run)
     print("Dynamic Loss Scaling:", hparams.dynamic_loss_scaling)
-    print('Encoder active', args.activate_encoder)
 
     train(args.output_directory, args.log_directory, args.checkpoint_path,
-          args.warm_start, args.n_gpus, args.rank, args.activate_encoder)
+          args.warm_start, args.n_gpus, args.rank)

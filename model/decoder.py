@@ -10,7 +10,7 @@ import model.hparams as hparams
 
 class Decoder(nn.Module):
     def \
-            __init__(self,active_encoder):
+            __init__(self):
         super(Decoder, self).__init__()
         self.n_mel_channels = hparams.n_mel_channels
         self.n_frames_per_step = hparams.n_frames_per_step
@@ -23,10 +23,7 @@ class Decoder(nn.Module):
         self.p_decoder_dropout = hparams.p_decoder_dropout
         self.max_len = hparams.max_len
 
-        if active_encoder:
-            self.encoder_embedding_dim = hparams.encoder_embedding_dim
-        else:
-            self.encoder_embedding_dim = hparams.embedding_dim
+        self.encoder_embedding_dim = hparams.encoder_embedding_dim
 
         self.prenet = Prenet(
             hparams.n_mel_channels * hparams.n_frames_per_step,
