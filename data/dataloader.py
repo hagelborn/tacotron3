@@ -3,9 +3,8 @@ from torch.utils import data
 from pathlib import Path
 import torch
 from data.transform import LogCompression
-from itertools import product
-import random
 import model.hparams as hparams
+import platform
 
 
 class Tacotron3Train(data.Dataset):
@@ -16,9 +15,13 @@ class Tacotron3Train(data.Dataset):
     Ouput data: mel y
     """
     def __init__(self,transform=LogCompression(),
-                 datapath=Path('/home/alex/tacotron3/data'),
                  mode='train'):
         self.transform = transform
+        if platform.system() == 'Linux':
+            datapath = Path('/home/alex/tacotron3/data')
+        else:
+            datapath= Path('/Users/alexanderhagelborn/PycharmProjects/speaker_decoder/data')
+
         # Change this at later stage
         if hparams.n_mel_channels == 80:
                 self.mel_path = datapath.joinpath('80mels')

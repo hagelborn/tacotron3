@@ -38,9 +38,9 @@ class Tacotron3(nn.Module):
         return mel_outputs, mel_outputs_postnet, alignments
 
     def inference(self,inputs):
-        mel_source, mel_lengths, embedding, _ = inputs
+        mel_source, mel_lengths, _ = inputs
 
-        encoder_outputs = self.encoder(mel_source, embedding)
+        encoder_outputs = self.encoder(mel_source)
         mel_outputs, _ = self.decoder.inference(encoder_outputs)
 
         end_padding_ind = get_reverse_mask(mel_lengths)
