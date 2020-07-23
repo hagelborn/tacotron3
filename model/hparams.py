@@ -7,8 +7,8 @@
 # Experiment Parameters        #
 ################################
 epochs=500
-iters_per_checkpoint=1
-batch_size=2
+iters_per_checkpoint=200
+batch_size=8
 
 seed=1234
 dynamic_loss_scaling=True
@@ -42,8 +42,8 @@ mel_fmax=8000.0
 
 # Encoder parameters
 speaker_encoder_num_layers = 3
-speaker_encoder_hidden_dim = 128
-bidirect = True
+speaker_encoder_hidden_dim = 256
+bidirect = False
 
 latent_dim = 64
 encoder_dropout = 0.3
