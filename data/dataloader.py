@@ -25,9 +25,11 @@ class Tacotron3Train(data.Dataset):
 
         # Change this at later stage
         if hparams.n_mel_channels == 80:
-                self.mel_path = datapath.joinpath('80mels')
+            self.mel_path = datapath.joinpath('80mels')
         elif hparams.n_mel_channels == 256:
             self.mel_path = datapath.joinpath('256mels')
+
+        self.label_path = datapath.joinpath('binlabels')
 
         self.transform = transform
         self.max_len = hparams.max_len
@@ -52,7 +54,10 @@ class Tacotron3Train(data.Dataset):
 
         # Random choice from persons directory
         mel_path = self.mel_path.joinpath(person)
+        label_path = self.label_path.joinpath(person)
 
+        target_label = np.load(label_path,allow_pickle=True)
+        target_label = torch.from_numpy(target_label).float()
 
         mel = np.load(mel_path,allow_pickle=True)
         mel = torch.from_numpy(mel)
@@ -66,4 +71,4 @@ class Tacotron3Train(data.Dataset):
             mel_length = self.max_len
             padded_mel = mel[:mel_length,:]
 
-        return (padded_mel, mel_length, padded_mel), padded_mel.transpose(1,0) #FIX - skipped clone() since this should return a new tensor anyway?
+        return (padded_mel, mel_length, padded_mel), (padded_mel.transpose(1,0), target_label) #FIX - skipped clone() since this should return a new tensor anyway?

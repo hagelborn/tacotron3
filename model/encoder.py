@@ -2,16 +2,6 @@ import torch
 import torch.nn as nn
 import model.hparams as hparams
 
-class SimpleEncoder(nn.Module):
-    def __init__(self):
-        super(SimpleEncoder, self).__init__()
-        self.max_len = hparams.max_len
-
-    def forward(self,mel_input,embedding): # FIX mel_input unnecessary, change data_set for activate_encoder?
-        embedding = embedding.unsqueeze(1)
-        encoder_output = embedding.repeat(1, self.max_len, 1)
-        return encoder_output
-
 
 class Encoder(nn.Module):
     def __init__(self):
@@ -45,6 +35,7 @@ class Encoder(nn.Module):
                             self.latent_dim)
         self.l2 = nn.Linear(self.speaker_encoder_hidden_dim*2,
                             self.latent_dim)
+        self.classifier = Classifier()
 
     def reparametrize(self,mu,logvar):
         std = logvar.mul(0.5).exp_()
@@ -66,13 +57,34 @@ class Encoder(nn.Module):
     def forward(self,mel_input):
         embedding = self.encode_speaker(mel_input)
         time_encoding, _ = self.time_encoder(mel_input)
+        labels = self.classifier(embedding)
         embedding = embedding.unsqueeze(1)
         embedding = embedding.repeat(1,self.max_len,1)
 
         encoder_output = torch.cat((time_encoding,embedding),dim=2)
-        return encoder_output
+        return encoder_output, labels
 
 
     def inference(self,mel_input):
 
         return mel_input
+
+class Classifier(nn.Module):
+    def __init__(self):
+        super(Classifier, self).__init__()
+        self.input_dim = hparams.latent_dim
+        self.linear = nn.Linear(self.input_dim,1)
+
+    def forward(self,x):
+        out = torch.sigmoid(self.linear(x))
+        return out
+
+class SimpleEncoder(nn.Module):
+    def __init__(self):
+        super(SimpleEncoder, self).__init__()
+        self.max_len = hparams.max_len
+
+    def forward(self,mel_input,embedding): # FIX mel_input unnecessary, change data_set for activate_encoder?
+        embedding = embedding.unsqueeze(1)
+        encoder_output = embedding.repeat(1, self.max_len, 1)
+        return encoder_output
