@@ -15,10 +15,10 @@ class Tacotron2Logger(SummaryWriter):
             self.add_scalar("learning.rate", learning_rate, iteration)
             self.add_scalar("duration", duration, iteration)
 
-    def log_validation(self, reduced_loss, model, y, y_pred, iteration, embeddings):
+    def log_validation(self, reduced_loss, model, y, y_pred, iteration, embeddings, labels):
         self.add_scalar("validation.loss", reduced_loss, iteration)
-        _, mel_outputs, alignments, labels = y_pred
-        mel_targets, target_labels = y
+        _, mel_outputs, alignments, _ = y_pred
+        mel_targets, _ = y
 
         # plot distribution of parameters
         for tag, value in model.named_parameters():
@@ -40,5 +40,5 @@ class Tacotron2Logger(SummaryWriter):
             plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),
             iteration, dataformats='HWC')
         self.add_embedding(mat=embeddings,
-                           metadata=target_labels,
+                           metadata=labels,
                            global_step=iteration)

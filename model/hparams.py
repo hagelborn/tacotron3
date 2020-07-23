@@ -7,7 +7,9 @@
 # Experiment Parameters        #
 ################################
 epochs=500
-iters_per_checkpoint=300
+iters_per_checkpoint=1
+batch_size=2
+
 seed=1234
 dynamic_loss_scaling=True
 fp16_run=False
@@ -43,11 +45,11 @@ speaker_encoder_num_layers = 3
 speaker_encoder_hidden_dim = 128
 bidirect = True
 
-latent_dim = 256
+latent_dim = 64
 encoder_dropout = 0.3
 
 time_encoder_num_layers = 1
-time_encoder_hidden_dim = 32
+time_encoder_hidden_dim = 8
 
 
 encoder_embedding_dim = time_encoder_hidden_dim + latent_dim
@@ -82,7 +84,6 @@ use_saved_learning_rate=False,
 learning_rate=5e-4
 weight_decay=1e-6
 grad_clip_thresh=1.0
-batch_size=8
 mask_padding=True  # set model's padded outputs to padded values
 
 

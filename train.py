@@ -13,6 +13,18 @@ from logger import Tacotron2Logger
 import model.hparams as hparams
 from data.dataloader import Tacotron3Train
 
+def get_labels(string, tensor):
+    genderlabels = []
+    for value in tensor:
+        if value == 1:
+            genderlabels.append('male')
+        elif value ==0:
+            genderlabels.append('female')
+        else:
+            print('hey dum dum')
+    labels = [string + gender for gender in genderlabels]
+    return labels
+
 def prepare_dataloaders():
     trainset = Tacotron3Train(mode='train')
     valset = Tacotron3Train(mode='validation')
@@ -72,7 +84,7 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
                 'learning_rate': learning_rate}, filepath)
 
 
-def validate(model, criterion, valset, iteration, batch_size, logger, rank):
+def validate(model, criterion, valset, iteration, batch_size, logger, rank, train_loader):
     """Handles all the validation scoring and printing"""
     model.eval()
     with torch.no_grad():
@@ -82,21 +94,29 @@ def validate(model, criterion, valset, iteration, batch_size, logger, rank):
 
         val_loss = 0.0
         embedding_list = []
+        labels = []
         for i, batch in enumerate(val_loader):
             x, y = batch
             y_pred = model(x)
             embedding_list.append(model.get_embeddings(x))
+            labels.extend(get_labels('validation_',y[1]))
             loss = criterion(y_pred, y)
             reduced_val_loss = loss.item()
             val_loss += reduced_val_loss
         val_loss = val_loss / (i + 1)
-        embeddings = torch.Tensor(hparams.batch_size * len(embedding_list), 100)
+
+        for batch in train_loader:
+            x, y = batch
+            embedding_list.append(model.get_embeddings(x))
+            labels.extend(get_labels('train_',y[1]))
+
+        embeddings = torch.Tensor(hparams.batch_size * len(embedding_list), hparams.latent_dim)
         torch.cat(embedding_list, out=embeddings)
 
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, val_loss))
-        logger.log_validation(val_loss, model, y, y_pred, iteration,embeddings)
+        logger.log_validation(val_loss, model, y, y_pred, iteration, embeddings,labels)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
@@ -188,7 +208,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
                 validate(model, criterion, valset, iteration,
-                         hparams.batch_size, logger, rank)
+                         hparams.batch_size, logger, rank, train_loader)
                 if rank == 0:
                     checkpoint_path = os.path.join(
                         output_directory, "checkpoint_{}".format(iteration) + '.pt')

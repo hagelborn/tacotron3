@@ -5,7 +5,7 @@ import torch
 from data.transform import LogCompression
 import model.hparams as hparams
 import platform
-
+import random
 
 
 class Tacotron3Train(data.Dataset):
@@ -34,13 +34,15 @@ class Tacotron3Train(data.Dataset):
         self.transform = transform
         self.max_len = hparams.max_len
 
-        # Making sure all people exist
+        # List of people, shuffled "randomly" with seed
         self.people = [p.name for p in self.mel_path.iterdir() if p.is_file() and p.name != '.DS_Store']
+        random.seed(hparams.seed)
+        random.shuffle(self.people)
 
         if mode == 'train':
-            self.people = self.people[round(0.2*len(self.people)):]
+            self.people = self.people[:round(0.8*len(self.people))]
         else:
-            self.people = self.people[:round(0.2*len(self.people))]
+            self.people = self.people[round(0.8*len(self.people)):]
 
 
     def __len__(self):
