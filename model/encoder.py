@@ -18,6 +18,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.speaker_encoder_num_layers = hparams.speaker_encoder_num_layers
         self.speaker_encoder_hidden_dim = hparams.speaker_encoder_hidden_dim
+        self.encoder_dropout = hparams.encoder_dropout
 
         self.latent_dim = hparams.latent_dim
 
@@ -31,11 +32,13 @@ class Encoder(nn.Module):
                             hidden_size=self.speaker_encoder_hidden_dim,
                             num_layers=self.speaker_encoder_num_layers,
                             batch_first=True,
+                            dropout=self.encoder_dropout,
                             bidirectional=hparams.bidirect
                             )
         self.time_encoder = nn.LSTM(input_size=self.n_mel_channels,
                                     hidden_size=self.time_encoder_hidden_dim,
                                     num_layers=self.time_encoder_num_layers,
+                                    dropout=self.encoder_dropout,
                                     batch_first=True)
 
         self.l1 = nn.Linear(self.speaker_encoder_hidden_dim*2,

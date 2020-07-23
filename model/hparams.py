@@ -19,7 +19,9 @@ ignore_layers=['embedding.weight']
 # Data Parameters             #
 ################################
 
-max_len = 850 #
+max_len = 500 #
+n_mel_channels = 256
+
 
 ################################
 # Audio Parameters             #
@@ -29,7 +31,6 @@ sampling_rate=16000
 filter_length=1024
 hop_length=256
 win_length=1024
-n_mel_channels=80
 mel_fmin=0.0
 mel_fmax=8000.0
 
@@ -38,14 +39,15 @@ mel_fmax=8000.0
 ################################
 
 # Encoder parameters
-speaker_encoder_num_layers = 3
+speaker_encoder_num_layers = 5
 speaker_encoder_hidden_dim = 128
 bidirect = True
 
 latent_dim = 256
+encoder_dropout = 0.3
 
-time_encoder_num_layers = 1
-time_encoder_hidden_dim = 16
+time_encoder_num_layers = 3
+time_encoder_hidden_dim = 32
 
 
 encoder_embedding_dim = time_encoder_hidden_dim + latent_dim

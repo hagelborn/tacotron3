@@ -59,6 +59,14 @@ class Tacotron3(nn.Module):
 
         return mel_outputs_postnet
 
+    def get_embeddings(self,inputs):
+        mel_source, _, _ = inputs
+        if mel_source.ndim == 2:
+            mel_source.unsqueeze_(0)
+        embeddings = self.encoder.encode_speaker(mel_source)
+        return embeddings
+
+
 
 
 class Postnet(nn.Module):

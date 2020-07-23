@@ -7,6 +7,7 @@ import model.hparams as hparams
 import platform
 
 
+
 class Tacotron3Train(data.Dataset):
     """ Dataset for training modified tacotron(or SV2TTS really)
     Retrives a random partial embedding/mel frame for each person every time for stochasticity
@@ -42,6 +43,9 @@ class Tacotron3Train(data.Dataset):
 
     def __len__(self):
         return len(self.people)
+
+    def get_name(self,item):
+        return self.people[item]
 
     def __getitem__(self, item):
         person = self.people[item]
