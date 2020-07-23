@@ -6,6 +6,7 @@
 /figs
 /data/80mels
 /data/embeddings
+/runs
 
 
 # Default python ignores:
