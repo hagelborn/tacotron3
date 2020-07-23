@@ -35,7 +35,7 @@ class Tacotron3(nn.Module):
 
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
-        return mel_outputs, mel_outputs_postnet, alignments, labels
+        return mel_outputs, mel_outputs_postnet, alignments, labels, embeddings
 
     def inference(self,inputs):
         mel_source, mel_lengths, _ = inputs

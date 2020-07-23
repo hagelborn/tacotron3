@@ -81,18 +81,22 @@ def validate(model, criterion, valset, iteration, batch_size, logger, rank):
                                 pin_memory=False, collate_fn=None)
 
         val_loss = 0.0
+        embedding_list = []
         for i, batch in enumerate(val_loader):
             x, y = batch
             y_pred = model(x)
+            embedding_list.append(model.get_embeddings(x))
             loss = criterion(y_pred, y)
             reduced_val_loss = loss.item()
             val_loss += reduced_val_loss
         val_loss = val_loss / (i + 1)
+        embeddings = torch.Tensor(hparams.batch_size * len(embedding_list), 100)
+        torch.cat(embedding_list, out=embeddings)
 
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, val_loss))
-        logger.log_validation(val_loss, model, y, y_pred, iteration)
+        logger.log_validation(val_loss, model, y, y_pred, iteration,embeddings)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
