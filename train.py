@@ -95,6 +95,12 @@ def validate(model, criterion, valset, iteration, batch_size, logger, rank, trai
         val_loss = 0.0
         embedding_list = []
         labels = []
+
+        for batch in train_loader:
+            x, y = batch
+            embedding_list.append(model.get_embeddings(x))
+            labels.extend(get_labels('train_',y[1]))
+
         for i, batch in enumerate(val_loader):
             x, y = batch
             y_pred = model(x)
@@ -104,11 +110,6 @@ def validate(model, criterion, valset, iteration, batch_size, logger, rank, trai
             reduced_val_loss = loss.item()
             val_loss += reduced_val_loss
         val_loss = val_loss / (i + 1)
-
-        for batch in train_loader:
-            x, y = batch
-            embedding_list.append(model.get_embeddings(x))
-            labels.extend(get_labels('train_',y[1]))
 
         embeddings = torch.Tensor(hparams.batch_size * len(embedding_list), hparams.latent_dim)
         torch.cat(embedding_list, out=embeddings)
