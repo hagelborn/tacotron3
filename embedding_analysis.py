@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 import pickle
 import platform
 from pathlib import Path
+from numpy.linalg import svd
+from numpy.linalg import matrix_rank
 
 def get_labels():
     if platform.system() == 'Linux':
@@ -61,13 +63,21 @@ if __name__ == '__main__':
     torch.cat(embedding_list, out=embeddings)
 
     embeddings = embeddings.detach().numpy()
+    print('Matrix rank', matrix_rank(embeddings))
 
     # Labels
     label_dict = get_labels()
     bin_labels = get_binary_labels(label_dict)
     labels = [bin_labels[name[:-4]] for name in names]
 
+    # PCA
     reduced = pca.fit_transform(embeddings)
     plt.figure()
     plt.scatter(reduced[:,0],reduced[:,1], c=labels)
+
+    # SVD vectors
+    s = svd(embeddings, compute_uv=False)
+    print(len(s))
+    plt.figure()
+    plt.stem(s)
     plt.show()
