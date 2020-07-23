@@ -5,6 +5,8 @@
 /.idea
 /figs
 /data/80mels
+/data/256mels
+/data/binlabels
 /data/embeddings
 /runs
 

@@ -7,7 +7,7 @@
 # Experiment Parameters        #
 ################################
 epochs=500
-iters_per_checkpoint=200
+iters_per_checkpoint=400
 batch_size=8
 
 seed=1234
