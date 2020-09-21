@@ -51,10 +51,30 @@ class Tacotron3Train(data.Dataset):
     def get_name(self,item):
         return self.people[item]
 
+    def get_person(self,item):
+        person = self.people[item]
+        mel_path = self.mel_path.joinpath(person)
+        label_path = self.label_path.joinpath(person)
+
+        mel = np.load(mel_path, allow_pickle=True)
+        mel = torch.from_numpy(mel)
+        mel = self.transform(mel)
+        target_label = np.load(label_path, allow_pickle=True)
+        target_label = torch.from_numpy(target_label).float()
+
+        padded_mel = mel.new_zeros(self.max_len, mel.shape[1])
+        if mel.shape[0] < self.max_len:
+            mel_length = mel.shape[0]
+            padded_mel[:mel_length, :] = mel
+        else:
+            mel_length = self.max_len
+            padded_mel = mel[:mel_length, :]
+
+        return (padded_mel, mel_length, 1), target_label
+
     def __getitem__(self, item):
         person = self.people[item]
 
-        # Random choice from persons directory
         mel_path = self.mel_path.joinpath(person)
         label_path = self.label_path.joinpath(person)
 
