@@ -6,7 +6,9 @@
 /figs
 /data/80mels
 /data/embeddings
-
+/data/256mels
+/data/binlabels
+*.npy
 
 # Default python ignores:
 # Created by https://www.toptal.com/developers/gitignore/api/python

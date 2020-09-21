@@ -30,7 +30,7 @@ sampling_rate=16000
 filter_length=1024
 hop_length=256
 win_length=1024
-n_mel_channels=80
+n_mel_channels=256
 mel_fmin=0.0
 mel_fmax=8000.0
 
@@ -40,8 +40,8 @@ mel_fmax=8000.0
 
 # Encoder parameters
 encoder_num_layers = 1
-encoder_hidden_dim = 32
-embedding_dim = 256
+encoder_hidden_dim = 5
+embedding_dim = 64
 bidirect = False
 encoder_embedding_dim = embedding_dim + encoder_hidden_dim*(1+bidirect)
 

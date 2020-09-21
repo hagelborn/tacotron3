@@ -16,7 +16,7 @@ class Tacotron3Train(data.Dataset):
     Ouput data: mel y
     """
     def __init__(self,transform=LogCompression(),
-                 datapath=Path('/home/alexander_hagelborn/tacotron3/data'),
+                 datapath=Path('home/tacotron3/data'),
                  mode='train'):
         self.transform = transform
         # Change this at later stage
