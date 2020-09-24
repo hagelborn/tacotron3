@@ -31,7 +31,7 @@ class Encoder(nn.Module):
 
     def forward(self,mel_input,embedding):
         mel_encoding, _ = self.lstm(mel_input)
-        embedding = embedding.unsqueeze(1)
+        #embedding = embedding.unsqueeze(1)
         embedding = embedding.repeat(1,self.max_len,1)
         encoder_output = torch.cat((mel_encoding,embedding),dim=2)
         return encoder_output

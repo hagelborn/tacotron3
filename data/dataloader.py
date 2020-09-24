@@ -16,28 +16,32 @@ class Tacotron3Train(data.Dataset):
     Ouput data: mel y
     """
     def __init__(self,transform=LogCompression(),
-                 datapath=Path('home/tacotron3/data'),
                  mode='train'):
         self.transform = transform
         # Change this at later stage
+        cwd = Path.cwd()
+        self.datapath = cwd.joinpath('data')
         if hparams.n_mel_channels == 80:
-                self.mel_path = datapath.joinpath('80mels')
+            self.mel_path = self.datapath.joinpath('80mels')
         elif hparams.n_mel_channels == 256:
-            self.mel_path = datapath.joinpath('256mels')
+            self.mel_path = self.datapath.joinpath('256mels')
 
-        self.emb_path = datapath.joinpath('embeddings')
+        self.emb_path = self.datapath.joinpath('embeddings')
         self.transform = transform
         self.max_len = hparams.max_len
 
         # Making sure all people exist
-        emb_people = set(p.name for p in self.emb_path.iterdir() if p.is_file() and p.name != '.DS_Store')
         mel_people = set(p.name for p in self.mel_path.iterdir() if p.is_file() and p.name != '.DS_Store')
+        emb_people = set(p.name for p in self.emb_path.iterdir() if p.is_file() and p.name != '.DS_Store')
         self.people = [person for person in emb_people if person in mel_people]
 
+        random.seed(hparams.seed)
+        random.shuffle(self.people)
+
         if mode == 'train':
-            self.people = self.people[round(0.2*len(self.people)):]
+            self.people = self.people[:round(0.8 * len(self.people))]
         else:
-            self.people = self.people[:round(0.2*len(self.people))]
+            self.people = self.people[round(0.8 * len(self.people)):]
 
 
     def __len__(self):

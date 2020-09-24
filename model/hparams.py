@@ -6,7 +6,7 @@
 ################################
 # Experiment Parameters        #
 ################################
-epochs=100
+epochs=1000
 iters_per_checkpoint=200
 seed=1234
 dynamic_loss_scaling=True

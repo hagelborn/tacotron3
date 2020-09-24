@@ -4,10 +4,6 @@
 /tacotron2
 /.idea
 /figs
-/data/80mels
-/data/embeddings
-/data/256mels
-/data/binlabels
 *.npy
 
 # Default python ignores:
