@@ -6,6 +6,8 @@ class Tacotron3Loss(nn.Module):
 
     def forward(self,model_output,mel_target):
         mel_out, mel_out_postnet, _ = model_output
-        mel_loss = nn.MSELoss()(mel_out, mel_target) + \
-                   nn.MSELoss()(mel_out_postnet, mel_target)
+        #mel_loss = nn.MSELoss()(mel_out, mel_target) + \
+        #           nn.MSELoss()(mel_out_postnet, mel_target)
+        mel_loss = nn.SmoothL1Loss()(mel_out, mel_target) + \
+                   nn.SmoothL1Loss()(mel_out_postnet, mel_target)
         return mel_loss
