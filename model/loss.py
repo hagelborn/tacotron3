@@ -9,7 +9,7 @@ class Tacotron3Loss(nn.Module):
         mel_target, label_target = target
         label_target.unsqueeze_(1)
 
-        mel_loss = nn.MSELoss()(mel_out, mel_target) + \
-                   nn.MSELoss()(mel_out_postnet, mel_target)
+        mel_loss = nn.SmoothL1Loss()(mel_out, mel_target) + \
+                   nn.SmoothL1Loss()(mel_out_postnet, mel_target)
         label_loss = nn.functional.binary_cross_entropy(label,label_target)
-        return mel_loss + label_loss
+        return mel_loss # + label_loss

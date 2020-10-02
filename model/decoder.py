@@ -351,7 +351,6 @@ class Prenet(nn.Module):
         return x
 
 def get_mask_from_lengths(lengths):
-    #max_len = torch.max(lengths).item() # Ugly sollution, FIX
     ids = torch.arange(0, hparams.max_len, out=torch.LongTensor(int(hparams.max_len)))
     mask = (ids < lengths.unsqueeze(1)).bool()
 
