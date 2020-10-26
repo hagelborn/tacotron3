@@ -41,20 +41,20 @@ class Tacotron3(nn.Module):
     def inference(self,inputs):
         mel_source, mel_lengths, _ = inputs
 
-        encoder_outputs = self.encoder(mel_source)
+        encoder_outputs, labels = self.encoder(mel_source)
         mel_outputs, _ = self.decoder.inference(encoder_outputs)
 
         end_padding_ind = get_reverse_mask(mel_lengths)
         mel_outputs_postnet = self.postnet(mel_outputs)
 
         # FIX This sollution is ugleh - is there a better way?
-        mel_outputs = mel_outputs.permute(0,2,1)
-        mel_outputs[end_padding_ind, :] = 0
-        mel_outputs = mel_outputs.permute(0,2,1)
-
-        mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
-        mel_outputs_postnet[end_padding_ind, :] = 0
-        mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
+        # mel_outputs = mel_outputs.permute(0,2,1)
+        # mel_outputs[end_padding_ind, :] = 0
+        # mel_outputs = mel_outputs.permute(0,2,1)
+        #
+        # mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
+        # mel_outputs_postnet[end_padding_ind, :] = 0
+        # mel_outputs_postnet = mel_outputs_postnet.permute(0,2,1)
 
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 

@@ -3,7 +3,7 @@ from train import *
 from model.tacotron import Tacotron3
 from sklearn.decomposition.pca import PCA
 import matplotlib
-matplotlib.use('MACOSX')
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
 import pickle
@@ -14,7 +14,7 @@ from numpy.linalg import matrix_rank
 
 def get_labels():
     if platform.system() == 'Linux':
-        datapath = Path('/home/alex/tacotron3/data')
+        datapath = Path('~/data/label.pickle')
     else:
         datapath = Path('/Users/alexanderhagelborn/PycharmProjects/speaker_decoder/data/label.pickle')
 
@@ -40,10 +40,9 @@ def get_binary_labels(label_dict):
 
 if __name__ == '__main__':
     pca = PCA(2)
-    label_dict = get_labels()
 
     model = Tacotron3()
-    checkpoint_path = 'checkpoints/3900.pt'
+    checkpoint_path = 'output/gaussclass/checkpoint_4000.pt'
     warm_start_model(checkpoint_path,model)
     dataset = Tacotron3Train()
     nbr_items = len(dataset)
@@ -66,18 +65,19 @@ if __name__ == '__main__':
     print('Matrix rank', matrix_rank(embeddings))
 
     # Labels
-    label_dict = get_labels()
-    bin_labels = get_binary_labels(label_dict)
-    labels = [bin_labels[name[:-4]] for name in names]
+    #label_dict = get_labels()
+    #bin_labels = get_binary_labels(label_dict)
+    #labels = [bin_labels[name[:-4]] for name in names]
 
     # PCA
     reduced = pca.fit_transform(embeddings)
     plt.figure()
-    plt.scatter(reduced[:,0],reduced[:,1], c=labels)
+    plt.scatter(reduced[:,0],reduced[:,1]) #), c=labels)
 
     # SVD vectors
     s = svd(embeddings, compute_uv=False)
     print(len(s))
     plt.figure()
     plt.stem(s)
+    plt.title('SVD vectors of embedding space - 64 dims')
     plt.show()
