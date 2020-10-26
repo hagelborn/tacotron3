@@ -24,7 +24,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-w', '--weights_path', type=str, default=None,
                         required=True, help='weights path')
-
     args = parser.parse_args()
 
     model = load_model()
